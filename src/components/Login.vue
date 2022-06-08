@@ -38,6 +38,10 @@ export default {
                     type: 'setNickname',
                     nickname: message["player"]
                   });
+                  this.$store.commit({
+                    type: 'setPlayerId',
+                    playerId: message["key"]
+                  });
                   this.$emit('loginSuccess');
                 } else {
                   this.errorMessage = message["message"]["response"];

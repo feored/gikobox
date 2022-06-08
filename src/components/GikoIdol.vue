@@ -1,6 +1,7 @@
 <script>
 import GikoIdolDraw from "./GikoIdolDraw.vue";
 import GikoIdolSpecs from "./GikoIdolSpecs.vue";
+import GikoIdolShow from "./GikoIdolShow.vue";
 
 import { useCookies } from "vue3-cookies";
 import * as ws from '../js/ws';
@@ -13,7 +14,8 @@ export default {
   },
   components: {
     GikoIdolDraw,
-    GikoIdolSpecs
+    GikoIdolSpecs,
+    GikoIdolShow
   },
   data() {
     return {
@@ -48,6 +50,10 @@ export default {
               console.log("Received load page :" + message["message"]);
               this.stage = message["message"];
               break;
+            default:
+              this.$refs.myChild.handleIncomingMessage(event);
+              break;
+                
         }
     };
   }
@@ -72,8 +78,8 @@ export default {
   <div>
     {{stage}}
   </div>
-  <GikoIdolDraw v-if="stage=='draw'" />
-  <GikoIdolSpecs v-if="stage=='specs'" />
+  <component :is="stage" ref="myChild"></component>
+
 </template>
 
 <style scoped>

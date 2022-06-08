@@ -8,7 +8,8 @@ const store = createStore({
       return {
           room:"",
           nickname:"",
-          game:""
+          game:"",
+          playerId:""
       }
     },
     mutations: {
@@ -20,6 +21,9 @@ const store = createStore({
         },
         setNickname (state, payload) {
             state.nickname = payload.nickname;
+        },
+        setPlayerId (state, payload) {
+            state.playerId = payload.playerId;
         }
     }
 });

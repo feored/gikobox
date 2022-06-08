@@ -6,6 +6,7 @@ export default {
     },
     data() {
         return {
+            sent: false,
             currentColor: "#000000",
             currentSize: 5,
             lastX: 0,
@@ -40,8 +41,9 @@ export default {
             });
         },
         clearCanvas(){
-            this.ctx.fillStyle = "rgb(255, 255, 255)";
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            //this.ctx.fillStyle = "rgb(255, 255, 255)";
+            //this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         },
         resetCanvas(){
             this.strokes = new Array();
@@ -89,11 +91,13 @@ export default {
         },
         send(){
             console.log("sent canvas");
-        }
-    },
-    created(){
-        console.log("Constant value of TARGETEDGAMEMESSAGE: " + constants.TARGETEDGAMEMESSAGE);
-        ws.socket.onmessage = (event) => {
+            //console.log("Base64:");
+            //console.log(this.canvas.toDataURL());
+            console.log("Sending playerId: " + this.$store.state.playerId)
+            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, this.canvas.toDataURL());
+            this.sent = true;
+        },
+        handleIncomingMessage(event){
             var message = JSON.parse(event.data);
             console.log("Giko Draw received message of type " + message["type"]);
             console.log(message);
@@ -103,7 +107,10 @@ export default {
                     console.log(message["message"]);
                     break;
             }
-        };
+        }
+    },
+    created() {
+        this.$emit('handler', this.handleIncomingMessage);
     },
     mounted() {
         this.canvas = document.getElementById("canvas");
@@ -133,14 +140,17 @@ export default {
 
     <button @click="clearCanvas()">Clear</button>
     <button @click="undo()">Undo</button>
-    <div width="500px" height="500px">
-        <canvas id="canvas" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
+    <div>
+        <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
         <br />
-        <button type="button" @click="submit">Submit</button>
+        <button type="button" @click="send">Submit</button>
     </div>
 </template>
 
 <style scoped>
+    #canvas{
+        background-color:white;
+    }
     .red {
       background-color: red;
     }

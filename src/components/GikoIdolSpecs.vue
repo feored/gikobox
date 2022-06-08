@@ -17,6 +17,13 @@ export default {
             ws.sendMessage(this.cookies.get("playerId"), constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, this.trait);
             this.trait = "";
         },
+        handleIncomingMessage(event){
+            var message = JSON.parse(event.data);
+            switch (message["type"]) {
+                case constants.TARGETEDGAMEMESSAGE:
+                    break;
+            }
+        }
     },
     created() {
     },
