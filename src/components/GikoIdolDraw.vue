@@ -6,6 +6,7 @@ export default {
     },
     data() {
         return {
+            idolName:"",
             sent: false,
             currentColor: "#000000",
             currentSize: 5,
@@ -94,7 +95,7 @@ export default {
             //console.log("Base64:");
             //console.log(this.canvas.toDataURL());
             console.log("Sending playerId: " + this.$store.state.playerId)
-            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, this.canvas.toDataURL());
+            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"name": this.idolName, "canvas" : this.canvas.toDataURL()});
             this.sent = true;
         },
         handleIncomingMessage(event){
@@ -143,6 +144,7 @@ export default {
     <div>
         <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
         <br />
+        <input id="name" v-model="idolName" type="text" />
         <button type="button" @click="send">Submit</button>
     </div>
 </template>

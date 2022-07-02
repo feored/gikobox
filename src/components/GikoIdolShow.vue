@@ -28,10 +28,8 @@ export default {
                 case constants.TARGETEDGAMEMESSAGE:
                     break;
             }
-        }
-    },
-    created(){
-        ws.socket.onmessage = (event) => {
+        },
+        handleIncomingMessage(event){
             var message = JSON.parse(event.data);
             console.log("Giko Show received message of type " + message["type"]);
             console.log(message);
@@ -39,7 +37,7 @@ export default {
                 case constants.TARGETEDGAMEMESSAGE:
                     break;
             }
-        };
+        }
     },
     mounted() {
     }
@@ -56,6 +54,7 @@ export default {
         <button @click="move('left')">left</button>
         <button @click="move('right')">right</button>
     </div>
+    
 
 </template>
 

@@ -2,6 +2,7 @@
 import GikoIdolDraw from "./GikoIdolDraw.vue";
 import GikoIdolSpecs from "./GikoIdolSpecs.vue";
 import GikoIdolShow from "./GikoIdolShow.vue";
+import GikoIdolVote from "./GikoIdolVote.vue";
 
 import { useCookies } from "vue3-cookies";
 import * as ws from '../js/ws';
@@ -15,7 +16,8 @@ export default {
   components: {
     GikoIdolDraw,
     GikoIdolSpecs,
-    GikoIdolShow
+    GikoIdolShow,
+    GikoIdolVote
   },
   data() {
     return {

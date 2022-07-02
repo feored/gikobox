@@ -60,6 +60,15 @@ async function loadNewPage(ws, wsMessage){
     module.exports.broadcastMessage(wsMessage.room, wsMessage);
 }
 
+async function loadNewPageSpecificPlayer(ws, wsMessage){
+    // check that the sender is GM (has right to send)
+    var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
+    if(!isGM){
+        return
+    }
+    module.exports.sendTargetedMessage(wsMessage.player, wsMessage);
+}
+
 async function handleTargetedGameMessage(ws, wsMessage){
     // determine if sender is GM or client to know who to send to
     var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
