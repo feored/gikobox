@@ -36,7 +36,7 @@ export default {
         <p> Pick traits you'd like to see in an idol! </p>
         <p> Examples: Likes to play sports, is tall, has a blue bag, etc... </p>
         <br />
-        <input v-model="trait" type="text" />
+        <input v-model="trait" type="text" @keyup.enter="sendTrait"/>
     </div>
     <button @click="sendTrait" type="button" id="submitButton">Submit</button>
 

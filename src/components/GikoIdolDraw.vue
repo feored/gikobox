@@ -144,7 +144,7 @@ export default {
     <div>
         <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
         <br />
-        <input id="name" v-model="idolName" type="text" />
+        <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
         <button type="button" @click="send">Submit</button>
     </div>
 </template>

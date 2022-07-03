@@ -109,6 +109,17 @@ function getRoomPlayersKey(roomId)
     return "room" + ":" + roomId + ":" + "players";
 }
 
+module.exports.deleteRoom = async function (roomId){
+    // Delete 2 Keys : room:xxx:players, room:xxx:info, and
+    // Remove xxx from set rooms
+
+    client.DEL(getRoomInfoKey(roomId));
+    client.DEL(getRoomPlayersKey(roomId));
+    client.SREM(ROOMS_KEY, roomId);
+
+    return;
+}
+
 module.exports.createRoom = async function (maxPlayers)
 {
     var roomId = generateRoomId();

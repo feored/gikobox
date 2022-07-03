@@ -47,7 +47,13 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
         case constants.TARGETEDGAMEMESSAGE:
             handleTargetedGameMessage(ws, wsMessage);
             break;
-
+        case constants.DELETEROOM:
+            // Check message is coming from GM
+            var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
+            if (isGM){
+                rooms.deleteRoom(wsMessage.room);
+            }
+            break;
     }
 }
 
