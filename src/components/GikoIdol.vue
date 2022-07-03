@@ -53,7 +53,11 @@ export default {
               this.stage = message["message"];
               break;
             default:
-              this.$refs.myChild.handleIncomingMessage(event);
+                try(
+                    this.$refs.myChild.handleIncomingMessage(event);
+                ) catch {
+                    console.log("couldn't send message.");
+                }
               break;
                 
         }
