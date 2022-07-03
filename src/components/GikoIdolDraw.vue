@@ -132,20 +132,25 @@ export default {
             </li>
         </ul>
     </div>
-    <div class="btn-group">
-        <button class="red circ-button" @click="setColor('#FF0000')"></button>
-        <button class="green circ-button" @click="setColor('#00FF00')"></button>
-        <button class="blue circ-button" @click="setColor('#0000FF')"></button>
-        <button class="black circ-button" @click="setColor('#000000')"></button>
-    </div>
+    <div id="drawing" v-show="!sent">
+        <div class="btn-group">
+            <button class="red circ-button" @click="setColor('#FF0000')"></button>
+            <button class="green circ-button" @click="setColor('#00FF00')"></button>
+            <button class="blue circ-button" @click="setColor('#0000FF')"></button>
+            <button class="black circ-button" @click="setColor('#000000')"></button>
+        </div>
 
-    <button @click="clearCanvas()">Clear</button>
-    <button @click="undo()">Undo</button>
-    <div>
-        <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
-        <br />
-        <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
-        <button type="button" @click="send">Submit</button>
+        <button @click="clearCanvas()">Clear</button>
+        <button @click="undo()">Undo</button>
+        <div>
+            <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
+            <br />
+            <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
+            <button type="button" @click="send">Submit</button>
+        </div>
+    </div>
+    <div id="edit" v-show="sent">
+        <button id="editBtn" @click="sent = false">Edit</button>
     </div>
 </template>
 
