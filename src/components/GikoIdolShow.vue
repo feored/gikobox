@@ -49,9 +49,11 @@ export default {
         <h3> Idol Show </h3>
         <p> Time to show the world your idol's ultimate moves! </p>
     </div>
-    <div class="btn-group">
-        <button @click="flip()">flip</button>
+    <div class="btn-group" style="padding:50px;">
         <button @click="move('left')">left</button>
+
+        <button @click="flip()">flip</button>
+        
         <button @click="move('right')">right</button>
     </div>
     

@@ -52,6 +52,14 @@ function isNameAvailable(roomId, name)
     return true;
 }
 
+module.exports.disconnectEveryoneFromRoom = async function (roomId){
+    var players = await module.exports.getAllPlayersInRoom(roomId);
+    players.forEach(playerId => {
+        if (module.exports.connections.has(playerId)){
+            module.exports.connections.get(playerId).close();
+        }
+    });
+}
 
 module.exports.getRoomGame = async function(roomId)
 {
@@ -110,6 +118,9 @@ function getRoomPlayersKey(roomId)
 }
 
 module.exports.deleteRoom = async function (roomId){
+
+    // await module.exports.disconnectEveryoneFromRoom(roomId);
+    
     // Delete 2 Keys : room:xxx:players, room:xxx:info, and
     // Remove xxx from set rooms
 

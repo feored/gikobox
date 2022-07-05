@@ -25,20 +25,31 @@ export default {
     loginSuccess(){
       this.logged = true;
       this.game = this.$store.state.game;
+    },
+    gameOver(){
+        this.logged = false;
+        this.game = "";
     }
+  }, 
+  created(){
+    console.log("Created!");
+     ws.socket.onclose = () => {
+        console.log("WebSocket connection closed.");
+        this.gameOver();
+     }
   }
 }
 </script>
 
 <template>
   <main>
-    <Login v-show="!logged" @loginSuccess="loginSuccess"/>
+    <Login v-if="!logged" @loginSuccess="loginSuccess"/>
     <GikoIdol v-if="logged && game=='GikoIdol'" />
   </main>
 </template>
 
 <style>
-#app {
+body {
   background-color:pink;
   font-weight: normal;
 }

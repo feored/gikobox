@@ -51,10 +51,16 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
             // Check message is coming from GM
             var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
             if (isGM){
-                rooms.deleteRoom(wsMessage.room);
+                await module.exports.broadcastMessage(wsMessage.room, sanitizeMessageKey(wsMessage));
+                await rooms.deleteRoom(wsMessage.room);
             }
             break;
     }
+}
+
+function sanitizeMessageKey(wsMessage){
+    wsMessage.key = "";
+    return wsMessage;
 }
 
 async function loadNewPage(ws, wsMessage){
@@ -63,6 +69,7 @@ async function loadNewPage(ws, wsMessage){
     if(!isGM){
         return
     }
+    wsMessage = sanitizeMessageKey(wsMessage);
     module.exports.broadcastMessage(wsMessage.room, wsMessage);
 }
 
@@ -72,6 +79,7 @@ async function loadNewPageSpecificPlayer(ws, wsMessage){
     if(!isGM){
         return
     }
+    wsMessage = sanitizeMessageKey(wsMessage);
     module.exports.sendTargetedMessage(wsMessage.player, wsMessage);
 }
 
@@ -79,6 +87,7 @@ async function handleTargetedGameMessage(ws, wsMessage){
     // determine if sender is GM or client to know who to send to
     var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
     if(isGM){
+        wsMessage = sanitizeMessageKey(wsMessage);
         module.exports.sendTargetedMessage(wsMessage.player, wsMessage);
     } else {
         console.log("Person who is not GM trying to send targeted message, aborting...");
@@ -91,6 +100,7 @@ async function handleGameMessage(ws, wsMessage){
     if(!isGM){
         module.exports.sendGMMessage(wsMessage.room, wsMessage);
     } else {
+        wsMessage = sanitizeMessageKey(wsMessage);
         module.exports.broadcastMessage(wsMessage.room, wsMessage);
     }
 }
