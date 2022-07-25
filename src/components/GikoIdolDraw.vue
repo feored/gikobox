@@ -90,13 +90,15 @@ export default {
             this.lastX = newX;
             this.lastY = newY;
         },
-        send(){
+        send(automatic){
             console.log("sent canvas");
             //console.log("Base64:");
             //console.log(this.canvas.toDataURL());
             console.log("Sending playerId: " + this.$store.state.playerId)
             ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"name": this.idolName, "canvas" : this.canvas.toDataURL()});
-            this.sent = true;
+            if (!automatic){
+                this.sent = true;
+            }
         },
         handleIncomingMessage(event){
             var message = JSON.parse(event.data);
@@ -104,8 +106,15 @@ export default {
             console.log(message);
             switch (message["type"]) {
                 case constants.TARGETEDGAMEMESSAGE:
-                    this.traits = message["message"];
-                    console.log(message["message"]);
+                    // Determine if we received the traits or
+                    // the request to submit drawing
+                    if (typeof message["message"] == 'string' && message["message"] == "SUBMIT"){
+                        console.log("Got request to auto submit drawing");
+                        this.send(true);
+                    } else {
+                        this.traits = message["message"];
+                        console.log(message["message"]);
+                    }
                     break;
             }
         }
@@ -143,11 +152,11 @@ export default {
         <button @click="clearCanvas()">Clear</button>
         <button @click="undo()">Undo</button>
         <div>
-            <canvas id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
+            <canvas class="border border-primary border-5" id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
             <br />
             <p>Enter your idol's name here!</p>
             <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
-            <button type="button" @click="send">Submit</button>
+            <button type="button" @click="send(false)">Submit</button>
         </div>
     </div>
     <div id="edit" v-show="sent">

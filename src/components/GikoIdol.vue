@@ -66,7 +66,6 @@ export default {
 </script>
 
 <template>
-
     <div id="stage">
         <!--<h1>{{ stage }}</h1>-->
         <component :is="stage" ref="myChild"></component>
