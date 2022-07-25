@@ -67,12 +67,16 @@ export default {
 
 <template>
 
-    <div>
-        <h1>{{ stage }}</h1>
+    <div id="stage">
+        <!--<h1>{{ stage }}</h1>-->
+        <component :is="stage" ref="myChild"></component>
     </div>
-    <component :is="stage" ref="myChild"></component>
 
 </template>
 
 <style scoped>
+#stage {
+  /*background-color: #ffe6ff;
+  font-weight: normal;*/
+}
 </style>

@@ -1,6 +1,7 @@
 module.exports = Object.freeze({
     CREATEROOM: 'create-room',
     DELETEROOM: 'DELETEROOM',
+    GAMESTARTABLE: 'GAMESTARTABLE',
     PLAYERJOIN: "player-join",
     GAMEMESSAGE: "game-message",
     GAMESTART: "game-start",

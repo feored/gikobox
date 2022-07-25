@@ -58,12 +58,21 @@ export default {
 
 <template>
   <div>
-    Name: <input v-model="nickname" type="text" name="name" />
-    <br />
-    Room ID: <input v-model="roomCode" type="text" name="room" pattern="[A-Z0-9]*" @input="v => roomCode = v.target.value.toUpperCase()" />
-    <br />
-    <button @click="login" type="button" id="join-game-button">Join Room</button>
-
+    <div class="row p-3 m-3" id="inputInfo">
+        <div class="container-fluid p-3">
+                <span><strong>Name</strong></span>
+                <br />
+                <input v-model="nickname" type="text" name="name" />
+        </div>
+        <div class="container-fluid p-3">
+                <span><strong>Room ID</strong></span>
+                <br />
+                <input v-model="roomCode" type="text" name="room" pattern="[A-Z0-9]*" @input="v => roomCode = v.target.value.toUpperCase()" />
+        </div>
+        <div class="container-fluid p-3">
+                <button @click="login" type="button" class="btn btn-primary" id="join-game-button">Join Room</button>
+        </div>
+    </div>
     <p style="color:red;" v-if="errorMessage">{{errorMessage}}</p>
     <!--
     <hr />
