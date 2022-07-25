@@ -21,7 +21,9 @@ export default {
             var message = JSON.parse(event.data);
             switch (message["type"]) {
                 case constants.TARGETEDGAMEMESSAGE:
-                    this.idols = message.message;
+                    console.log("Received voting message:");
+                    console.log(mesage);
+                    this.idols = message["message"];
                     break;
             }
         }
