@@ -16,7 +16,7 @@ export default {
   },
   methods: {
     login() {
-      ws.sendMessage(this.cookies.get("playerId"), constants.PLAYERJOIN, this.roomCode, this.nickname, "");
+        ws.sendMessage(this.cookies.get("playerId"), constants.PLAYERJOIN, this.roomCode, this.nickname, "");
     }
   },
   created(){
@@ -73,7 +73,7 @@ export default {
                 <button @click="login" type="button" class="btn btn-primary" id="join-game-button">Join Room</button>
         </div>
     </div>
-    <p style="color:red;" v-if="errorMessage">{{errorMessage}}</p>
+    <p class="text-danger" v-if="errorMessage">{{errorMessage}}</p>
     <!--
     <hr />
     

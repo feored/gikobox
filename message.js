@@ -106,7 +106,7 @@ async function handleGameMessage(ws, wsMessage){
 }
 
 async function handlePlayerJoin(ws, wsMessage){
-    var response = await rooms.joinRoom(wsMessage.room, wsMessage.key, wsMessage.message, ws);
+    var response = await rooms.joinRoom(wsMessage.room, wsMessage.key, wsMessage.player, ws);
     var messageBack;
     if (!response.success){
         messageBackData = {

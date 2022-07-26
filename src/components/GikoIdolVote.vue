@@ -9,20 +9,22 @@ export default {
     },
     data() {
         return {
+            voted: false,
             idols: [],
             vote: ""
         };
     },
     methods: {
         sendChoice() {
-            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"vote": this.idolName});
+            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"vote": this.vote});
+            this.voted = true;
         },
         handleIncomingMessage(event){
             var message = JSON.parse(event.data);
+            console.log(message);
             switch (message["type"]) {
                 case constants.TARGETEDGAMEMESSAGE:
                     console.log("Received voting message:");
-                    console.log(mesage);
                     this.idols = message["message"];
                     break;
             }
@@ -35,13 +37,16 @@ export default {
 </script>
 
 <template>
-    <div id="specs">
+    <div id="specs" v-if="!voted">
         <p> Vote for the idol you liked the most!</p>
         <br />
         <div v-for="idol in idols">
               <input type="radio" v-model="vote" name="vote" :value="idol.player"> {{idol.idolName}} ({{idol.player}})
         </div>
+        <button @click="sendChoice" type="button" id="submitButton">Submit</button>
     </div>
-    <button @click="sendChoice" type="button" id="submitButton">Submit</button>
-
+    <div v-else>
+        <p>Your vote has been registered!</p>
+    </div>
+    
 </template>

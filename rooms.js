@@ -1,3 +1,6 @@
+const { v4: uuidv4, validate: uuidValidate, version: uuidVersion } = require('uuid');
+
+
 module.exports.connections = new Map();
 // Used to keep connections alive
 
@@ -18,7 +21,6 @@ const ROOMS_GAME_KEY = "ROOM_GAME";
 const CURRENT_PLAYERS_KEY = "currentPlayers";
 const PLAYER_NAME_KEY = "name";
 const PLAYER_ROOM_KEY = "room";
-
 
 const VALIDCHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const PLAYERIDLENGTH = 8;
@@ -43,12 +45,31 @@ function generateRoomId(){
 }
 
 module.exports.generatePlayerId = function(){
-    return makeId(VALIDCHARACTERS, PLAYERIDLENGTH);
+    return uuidv4();
 }
 
-function isNameAvailable(roomId, name)
+async function isNameAvailable(roomId, name)
 {
-    // Annoying having to use callbacks for .SMEMBERS
+    console.log("Checking if name " + name + " is available.");
+    var playersInRoom = await module.exports.getAllPlayersInRoom(roomId);
+    for (var i = 0; i < playersInRoom.length; i++){
+        var takenName = await client.HGET(getPlayerInfoKey(playersInRoom[i]), PLAYER_NAME_KEY);
+        console.log("Now verifying against " + takenName + " ?");
+        if (name == takenName){
+            console.log("FALSE!");
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function isValidPlayerName(playerName){
+    console.log("Checking validity of name " + playerName + " of length " + playerName.length + ".");
+    if (playerName.length < 1 || playerName.length > 20){
+        return false;
+    }
+
     return true;
 }
 
@@ -149,20 +170,7 @@ module.exports.createRoom = async function (maxPlayers)
 
 module.exports.isValidPlayerCode = function (playerId)
 {
-    if (!playerId){
-        return false;
-    }
-    if (playerId.length != PLAYERIDLENGTH){
-        return false;
-    }
-    var isValid = true;
-    for (let i = 0; i < playerId.length; i++){
-        if (!VALIDCHARACTERS.includes(playerId[i])){
-            isValid = false;
-            break;
-        }
-    }
-    return isValid;
+    return uuidValidate(playerId) && uuidVersion(playerId) === 4;
 }
 
 
@@ -196,6 +204,7 @@ module.exports.getAllPlayersInRoom = async function(roomId)
 
 module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
 {
+
     var response = {};
     response.success = true;
     response.message = "Successfully joined room.";
@@ -203,6 +212,12 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
     if (!module.exports.isValidPlayerCode(playerId)){
         response.success = false;
         response.message = "Sorry, your playerID is invalid. Try clearing your cache or deleting cookies and refreshing.";
+        return response;
+    }
+
+    if (!isValidPlayerName(playerName)){
+        response.success = false;
+        response.message = "Sorry, the name you have chosen is invalid. Please try another name.";
         return response;
     }
 
@@ -216,7 +231,7 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
     if (await client.SCARD(getRoomPlayersKey(roomId)) >= await client.HGET(getRoomInfoKey(roomId), MAX_PLAYERS_KEY)){
         // Room has no more space
         response.success = false;
-        response.message = "Room has no more space left.";
+        response.message = "Sorry, the room is full already.";
         return response;
     }
 

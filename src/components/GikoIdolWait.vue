@@ -56,9 +56,13 @@ export default {
         <br />
         <div class="row">
             <div class="col-md-6"> 
-                <div class="container" v-for="avatar in this.avatars">
-                    <img :src="'/GikoIdol/img/' + avatar + '.svg'" width="50" height="50" />
-                    <input type="radio" v-model="avatarChoice" name="avatarpick" :value="avatar" @change="pickAvatar"> {{avatar}}
+                <div class="container row" v-for="avatar in this.avatars">
+                    <div class="col"> 
+                        <img :src="'/GikoIdol/img/' + avatar + '.svg'" width="50" height="50" />
+                    </div>
+                    <div class="col"> 
+                        <input type="radio" v-model="avatarChoice" name="avatarpick" :value="avatar" @change="pickAvatar">
+                    </div>
                 </div>
             </div>
         </div>
