@@ -165,6 +165,8 @@ module.exports.broadcastMessage = async function (roomId, message){
 }
 
 module.exports.sendTargetedMessage = async function (playerId, message){
+    console.log("Sending targeted message");
+    console.log(message);
     if (rooms.connections.has(playerId)){
         console.log("Player ws connection found: " + playerId)
         rooms.connections.get(playerId).send(JSON.stringify(message));
