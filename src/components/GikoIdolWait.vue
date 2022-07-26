@@ -9,6 +9,7 @@ export default {
         return {
             avatarChoice: "",
             VIP: false,
+            startable: false,
             avatars: []
         }
     },
@@ -27,6 +28,11 @@ export default {
                     this.avatars = message["message"];
                     console.log(this.avatars);
                     break;
+                case constants.GAMESTARTABLE:
+                    this.startable = true;
+                    console.log("Game startable message received");
+                    break;
+
             }
         },
         getImage(name){
@@ -48,7 +54,7 @@ export default {
 
 <template>
     <p>Waiting to start...</p>
-    <button v-show="VIP" @click="startGame">
+    <button v-show="VIP && startable" @click="startGame">
             Start the game
     </button>
     <div> <!--</div> v-show="avatars.length > 0">-->

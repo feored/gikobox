@@ -2,6 +2,7 @@ export const CREATEROOM = 'create-room';
 export const DELETEROOM = "DELETEROOM";
 export const PLAYERJOIN = "player-join";
 export const GAMEMESSAGE = "game-message";
+export const GAMESTARTABLE = "GAMESTARTABLE";
 export const GAMESTART = "game-start";
 export const SUCCESS = "SUCCESS"
 export const ERROR = "FAILURE";

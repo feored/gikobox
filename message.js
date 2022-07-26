@@ -55,7 +55,19 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
                 await rooms.deleteRoom(wsMessage.room);
             }
             break;
+        case constants.GAMESTARTABLE:
+            var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
+            if (isGM){
+                await makeGameStartable(wsMessage);
+            }
+            break;
     }
+}
+
+async function makeGameStartable(wsMessage){
+    var VIPkey = await rooms.getRoomVIP(wsMessage.room);
+    wsMessage = sanitizeMessageKey(wsMessage);
+    module.exports.sendTargetedMessage(VIPkey, wsMessage);
 }
 
 function sanitizeMessageKey(wsMessage){
