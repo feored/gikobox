@@ -41,10 +41,12 @@ export default {
     <div id="specs" v-if="!voted">
         <p> Vote for the idol you liked the most!</p>
         <br />
-        <div v-for="idol in idols">
-              <input type="radio" v-model="vote" name="vote" :value="idol.player"> {{idol.idolName}} ({{idol.player}})
+        <div v-if="idols.length > 0">
+            <div v-for="idol in idols">
+                <input type="radio" v-model="vote" name="vote" :value="idol.player"> {{idol.idolName}} ({{idol.player}})
+            </div>
+            <button @click="sendChoice" type="button" id="submitButton">Submit</button>
         </div>
-        <button @click="sendChoice" type="button" id="submitButton">Submit</button>
     </div>
     <div v-else>
         <p>Your vote has been registered!</p>
