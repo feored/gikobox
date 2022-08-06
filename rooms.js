@@ -6,7 +6,6 @@ module.exports.connections = new Map();
 
 const redis = require('redis');
 const client = redis.createClient({url: process.env.REDIS_URL || "redis://127.0.0.1:6379"});
-console.log(process.env);
 
 client.connect();
 
@@ -17,14 +16,21 @@ const PLAYERS_KEY = "players";
 const MAX_PLAYERS_KEY = "maxPlayers";
 const ROOMS_VIP_KEY = "VIP";
 const ROOMS_GM_KEY = "GM";
+const ROOMS_OPEN_KEY = "OPEN";
 const ROOMS_GAME_KEY = "ROOM_GAME";
 const CURRENT_PLAYERS_KEY = "currentPlayers";
 const PLAYER_NAME_KEY = "name";
 const PLAYER_ROOM_KEY = "room";
+const PLAYER_TYPE_KEY = "playertype"
 
 const VALIDCHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const PLAYERIDLENGTH = 8;
 const ROOMIDLENGTH = 4;
+
+const ROOM_OPEN = "OPEN";
+const ROOM_CLOSED = "CLOSED";
+
+const TYPE_GM = "GM";
+const TYPE_PLAYER = "PLAYER";
 
 client.on('error', (err) => {
     console.log(`Error ${err}`)
@@ -50,13 +56,10 @@ module.exports.generatePlayerId = function(){
 
 async function isNameAvailable(roomId, name)
 {
-    console.log("Checking if name " + name + " is available.");
     var playersInRoom = await module.exports.getAllPlayersInRoom(roomId);
     for (var i = 0; i < playersInRoom.length; i++){
         var takenName = await client.HGET(getPlayerInfoKey(playersInRoom[i]), PLAYER_NAME_KEY);
-        console.log("Now verifying against " + takenName + " ?");
         if (name == takenName){
-            console.log("FALSE!");
             return false;
         }
     }
@@ -65,7 +68,6 @@ async function isNameAvailable(roomId, name)
 }
 
 function isValidPlayerName(playerName){
-    console.log("Checking validity of name " + playerName + " of length " + playerName.length + ".");
     if (playerName.length < 1 || playerName.length > 20){
         return false;
     }
@@ -73,13 +75,27 @@ function isValidPlayerName(playerName){
     return true;
 }
 
+module.exports.isTypeGM = async function(playerId){
+    return (await client.HGET(getPlayerInfoKey(playerId), PLAYER_TYPE_KEY)) == TYPE_GM;
+}
+
 module.exports.disconnectEveryoneFromRoom = async function (roomId){
     var players = await module.exports.getAllPlayersInRoom(roomId);
     players.forEach(playerId => {
+        client.DEL(getPlayerInfoKey(playerId));
+        client.SREM(PLAYERS_KEY,  playerId);
         if (module.exports.connections.has(playerId)){
             module.exports.connections.get(playerId).close();
         }
     });
+    module.exports.getRoomGM(roomId).then((playerId) => {
+        client.DEL(getPlayerInfoKey(playerId));
+        client.SREM(PLAYERS_KEY,  playerId);
+    });
+}
+
+module.exports.getPlayerInfo = async function(playerId){
+    return await client.HGETALL(getPlayerInfoKey(playerId));
 }
 
 module.exports.getRoomGame = async function(roomId)
@@ -107,6 +123,18 @@ module.exports.setRoomVIP = async function(roomId, key)
     client.HSET(getRoomInfoKey(roomId), ROOMS_VIP_KEY, key);
 }
 
+module.exports.setRoomClosed = async function(roomId){
+    client.HSET(getRoomInfoKey(roomId), ROOMS_OPEN_KEY, ROOM_CLOSED);
+}
+
+module.exports.setRoomOpen = async function(roomId){
+    client.HSET(getRoomInfoKey(roomId), ROOMS_OPEN_KEY, ROOM_OPEN);
+}
+
+module.exports.getRoomOpen = async function(roomId){
+    return await client.HGET(getRoomInfoKey(roomId), ROOMS_OPEN_KEY) == ROOM_OPEN;
+}
+
 module.exports.getRoomGM = async function(roomId)
 {
     return await client.HGET(getRoomInfoKey(roomId), ROOMS_GM_KEY);
@@ -119,7 +147,11 @@ module.exports.isRoomGM = async function(playerId, roomId)
 
 module.exports.setRoomGM = async function(roomId, key, ws)
 {
+    client.SADD(PLAYERS_KEY, key);
     client.HSET(getRoomInfoKey(roomId), ROOMS_GM_KEY, key);
+    client.HSET(getPlayerInfoKey(key), PLAYER_NAME_KEY, TYPE_GM);
+    client.HSET(getPlayerInfoKey(key), PLAYER_ROOM_KEY, roomId);
+    client.HSET(getPlayerInfoKey(key), PLAYER_TYPE_KEY, TYPE_GM);
     module.exports.connections.set(key, ws);
 }
 
@@ -144,7 +176,6 @@ module.exports.deleteRoom = async function (roomId){
     
     // Delete 2 Keys : room:xxx:players, room:xxx:info, and
     // Remove xxx from set rooms
-
     client.DEL(getRoomInfoKey(roomId));
     client.DEL(getRoomPlayersKey(roomId));
     client.SREM(ROOMS_KEY, roomId);
@@ -162,8 +193,8 @@ module.exports.createRoom = async function (maxPlayers)
 
     client.SADD(ROOMS_KEY, roomId);
     client.HSET(getRoomInfoKey(roomId), MAX_PLAYERS_KEY, maxPlayers);
+    module.exports.setRoomOpen(roomId);
 
-    console.log("New room created: " + roomId);
 
     return roomId;
 }
@@ -220,11 +251,17 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
         response.message = "Sorry, the name you have chosen is invalid. Please try another name.";
         return response;
     }
-
+    
     if (!(await client.SISMEMBER(ROOMS_KEY, roomId))){
         // Room does not exist
         response.success = false;
         response.message = "Room " + roomId + " does not exist.";
+        return response;
+    }
+
+    if (!(await module.exports.getRoomOpen(roomId))){
+        response.success = false;
+        response.message = "Sorry, you cannot join this room. The room may be full or the game may have already started.";
         return response;
     }
 
@@ -253,6 +290,7 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
     client.SADD(getRoomPlayersKey(roomId), playerId);
     client.HSET(getPlayerInfoKey(playerId), PLAYER_NAME_KEY, playerName);
     client.HSET(getPlayerInfoKey(playerId), PLAYER_ROOM_KEY, roomId);
+    client.HSET(getPlayerInfoKey(playerId), PLAYER_TYPE_KEY, TYPE_PLAYER);
 
 
     // Check if player is VIP (== First player)

@@ -1,101 +1,62 @@
 <script>
 import * as constants from '../js/constants';
 import * as ws from '../js/ws';
+import Atrament from 'atrament';
+import Picker from 'vanilla-picker';
+
+import BrushIcon from 'vue-material-design-icons/Brush.vue';
+import FormatColorFillIcon from 'vue-material-design-icons/FormatColorFill.vue';
+import EraserIcon from 'vue-material-design-icons/Eraser.vue';
+
 export default {
+    components: {
+        BrushIcon,
+        FormatColorFillIcon,
+        EraserIcon
+    },
     setup() {
     },
     data() {
         return {
+            colors: [
+                "#000000",
+                "#cccccc",
+                "#FFFFFF",
+                "#FF0000",
+                "#00FF00",
+                "#0000FF"
+            ],
             idolName:"",
             sent: false,
-            currentColor: "#000000",
-            currentSize: 5,
-            lastX: 0,
-            lastY: 0,
-            strokes: null,
-            points: null,
+            traits: null,
+
+            weight:3,
             canvas: null,
-            ctx: null,
-            traits: null
+            sketchpad: null,
         }
     },
     methods: {
         setColor(newColor){
-            this.currentColor = newColor;
-        },
-        setSize(newSize){
-            this.currentSize = newSize;
-        },
-        storeStroke(){
-            console.log("stroke stored");
-            this.strokes.push(this.points);
-            this.points = new Array();
-        },
-        undo(){
-            this.clearCanvas();
-            this.strokes.splice(-1,1);
-            this.strokes.forEach(path=>{
-                console.log("drawing again path");
-                path.forEach(point => {
-                    this.draw(point);
-                });
-            });
+            if (this.sketchpad){
+                this.sketchpad.color = newColor;
+            }
         },
         clearCanvas(){
-            //this.ctx.fillStyle = "rgb(255, 255, 255)";
-            //this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.sketchpad.clear();
         },
-        resetCanvas(){
-            this.strokes = new Array();
-            this.points = new Array();
-            this.clearCanvas();
+        setSketchMode(sketchMode){
+            this.sketchpad.mode = sketchMode;
         },
-        setLastCoords(e) {
-            const {x, y} = this.canvas.getBoundingClientRect();
-            this.lastX = e.clientX - x;
-            this.lastY = e.clientY - y;
-        },
-        freeForm(e) {
-            if (e.buttons !== 1) return; // left button is not pushed yet
-            this.penTool(e);
-        },
-        draw (stroke) {
-            this.ctx.beginPath();
-            this.ctx.lineWidth = stroke.size;
-            this.ctx.moveTo(stroke.x_old, stroke.y_old);
-            this.ctx.lineTo(stroke.x, stroke.y);
-            this.ctx.strokeStyle = stroke.color;
-            this.ctx.stroke();
-            this.ctx.closePath();
-        },
-        penTool(e) {
-            const {x, y} = this.canvas.getBoundingClientRect();
-            const newX = e.clientX - x;
-            const newY = e.clientY - y;
-            
-            let currentPoint = {
-                x_old: this.lastX,
-                y_old: this.lastY,
-                x: newX,
-                y: newY,
-                size: this.currentSize,
-                color: this.currentColor
-            };
-
-            this.draw(currentPoint);
-
-            this.points.push(currentPoint);
-            
-            this.lastX = newX;
-            this.lastY = newY;
+        updateWeight(){
+            console.log("new weight = " + this.weight);
+            this.sketchpad.weight = this.weight;
         },
         send(automatic){
             console.log("sent canvas");
             //console.log("Base64:");
             //console.log(this.canvas.toDataURL());
             console.log("Sending playerId: " + this.$store.state.playerId)
-            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"name": this.idolName, "canvas" : this.canvas.toDataURL()});
+            ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, {"name": this.idolName, "canvas" : this.sketchpad.toImage()});
             if (!automatic){
                 this.sent = true;
             }
@@ -123,11 +84,25 @@ export default {
         this.$emit('handler', this.handleIncomingMessage);
     },
     mounted() {
-        this.canvas = document.getElementById("canvas");
-        this.ctx = this.canvas.getContext("2d");
-        this.strokes = new Array();
-        this.points = new Array();
-        this.clearCanvas();
+
+        //color picker stuff
+        const colorpicker = document.querySelector('#colorpicker');
+        var pickerFixed = new Picker({
+                parent: colorpicker,
+                popup: false,
+                alpha: false,
+                editor: false,
+                color: 'black',
+                onChange: (color) => {
+                    this.setColor(color.hex);
+                },
+            });
+
+        // Sketchpad stuff
+        this.canvas = document.querySelector('#sketchpad');
+        this.sketchpad = new Atrament(this.canvas);
+
+
     }
 }
 </script>
@@ -142,58 +117,42 @@ export default {
         </ul>
     </div>
     <div id="drawing" v-show="!sent">
-        <div class="btn-group">
-            <button class="red circ-button" @click="setColor('#FF0000')"></button>
-            <button class="green circ-button" @click="setColor('#00FF00')"></button>
-            <button class="blue circ-button" @click="setColor('#0000FF')"></button>
-            <button class="black circ-button" @click="setColor('#000000')"></button>
-        </div>
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked @click="setSketchMode('draw')">
+            <label class="btn btn-outline-primary" for="btnradio1"><brush-icon /></label>
 
-        <button @click="clearCanvas()">Clear</button>
-        <button @click="undo()">Undo</button>
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" @click="setSketchMode('fill')">
+            <label class="btn btn-outline-primary" for="btnradio2"><format-color-fill-icon /></label>
+
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off" @click="setSketchMode('erase')">
+            <label class="btn btn-outline-primary" for="btnradio3"><eraser-icon /></label>
+        </div>
+        <br />
+        <div class="btn-group" role="group" aria-label="Colors">
+            <button v-for="color in colors" type="button" class="btn rounded-circle" :style="'width:30px; height:30px; margin-left:5px; margin-right:5px; background-color: ' + color" @click="setColor(color)"></button>
+        </div>
+        <br />
+        <div class="btn-group" role="group" aria-label="Brush width">
+            <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:20px; height:20px;" @click="this.sketchpad.weight=0.5"></button>
+            <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:25px; height:25px;" @click="this.sketchpad.weight=2"></button>
+            <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:30px; height:30px;" @click="this.sketchpad.weight=5"></button>
+            <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:35px; height:35px;" @click="this.sketchpad.weight=10"></button>
+            <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:40px; height:40px;" @click="this.sketchpad.weight=20"></button>
+        </div>
+        <br />
+        <button @click="clearCanvas()" class="btn btn-danger">Clear</button>
         <div>
-            <canvas class="border border-primary border-5" id="canvas" height="640" width="480" @mousedown="setLastCoords($event)" @mousemove="freeForm($event)" @mouseup="storeStroke()"></canvas>
+            <canvas class="border border-secondary border-5 rounded" width="480" height="640" id="sketchpad"></canvas>
             <br />
             <p>Enter your idol's name here!</p>
             <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
-            <button type="button" @click="send(false)">Submit</button>
+            <button type="button" class="btn btn-primary" @click="send(false)">Submit</button>
         </div>
     </div>
     <div id="edit" v-show="sent">
-        <button id="editBtn" @click="sent = false">Edit</button>
+        <button id="editBtn" class="btn btn-warning" @click="sent = false">Edit</button>
     </div>
 </template>
 
 <style scoped>
-    #canvas{
-        background-color:white;
-    }
-    .red {
-      background-color: red;
-    }
-    .green {
-      background-color: green;
-    }
-    .blue {
-      background-color: blue;
-    }
-    .black {
-      background-color: black;
-    }
-    .circ-button {
-      cursor: pointer;
-      border: 3px black;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      width: 50px;
-    }
-    .btn-group button {
-      margin-right: 10px;
-      float: left;
-    }
-    .btn-group:after {
-      content: "";
-      clear: both;
-      display: table;
-    }
   </style>

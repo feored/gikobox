@@ -7,6 +7,7 @@
     "@vitejs/plugin-vue": "^2.3.1",
     "@vue/cli": "^5.0.4",
     "@vue/eslint-config-prettier": "^7.0.0",
+    "atrament": "^2.0.0",
     "body-parser": "^1.20.0",
     "bootstrap": "^5.2.0",
     "cookie-parser": "^1.4.6",
@@ -20,8 +21,10 @@
     "prettier": "^2.5.1",
     "redis": "^4.0.6",
     "uuid": "^8.3.2",
+    "vanilla-picker": "^2.12.1",
     "vite": "^2.9.5",
     "vue": "^3.2.33",
+    "vue-material-design-icons": "^5.1.2",
     "vue3-cookies": "^1.0.6",
     "vuex": "^4.0.2",
     "ws": "^8.5.0",
@@ -30,9 +33,10 @@
   },
   "scripts": {
     "start": "vite build && node index.js -p $PORT",
-    "serve": "vue-cli-service serve --port 3000"
+    "serve": "concurrently \"vite build --watch\" \"node index.js -p 3000\""
   },
   "devDependencies": {
-    "@vue/cli-service": "^5.0.4"
+    "@vue/cli-service": "^5.0.4",
+    "concurrently": "^7.3.0"
   }
 }

@@ -3,7 +3,9 @@ import GikoIdolWait from "./GikoIdolWait.vue";
 import GikoIdolDraw from "./GikoIdolDraw.vue";
 import GikoIdolSpecs from "./GikoIdolSpecs.vue";
 import GikoIdolShow from "./GikoIdolShow.vue";
+import GikoIdolShowSpectator from "./GikoIdolShowSpectator.vue";
 import GikoIdolVote from "./GikoIdolVote.vue";
+
 
 import { useCookies } from "vue3-cookies";
 import * as ws from '../js/ws';
@@ -19,7 +21,8 @@ export default {
         GikoIdolDraw,
         GikoIdolSpecs,
         GikoIdolShow,
-        GikoIdolVote
+        GikoIdolVote,
+        GikoIdolShowSpectator
     },
     data() {
         return {

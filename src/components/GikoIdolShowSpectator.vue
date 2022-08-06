@@ -23,26 +23,9 @@ export default {
         }
     },
     methods: {
-        flip(){
-            console.log("sent flip");
-            var command = {"command": "flip"};
+        cheer(){
+            var command = {"command": "cheer"};
             this.sendCommand(command);
-        },
-        move(dir){
-            console.log("sent move " + dir);
-            var command = {"command": "move", "direction": dir};
-            this.sendCommand(command);
-        },
-        jump(){
-            console.log("sent jump");
-            var command = {"command": "jump"};
-            this.sendCommand(command);
-        },
-        talk(){
-                console.log("sent words " + this.words);
-                var command = {"command": "talk", "content" : this.words};
-                this.sendCommand(command);
-                this.words = "";
         },
         sendCommand(command){
             ws.sendMessage(this.$store.state.playerId, constants.GAMEMESSAGE, this.$store.state.room, this.$store.state.nickname, command);
@@ -70,27 +53,10 @@ export default {
 </script>
 
 <template>
-    <div v-show="traits">
-        <h3> Idol Show </h3>
-        <p> Time to show the world your idol's ultimate moves! </p>
-    </div>
+    <p>Show your support for the other idols!</p>
     <div class="btn-group" style="padding:50px;">
-        <button class="btn btn-outline-primary m-3" @click="move('left')"><arrow-left-bold-icon /></button>
-
-        <button class="btn btn-outline-primary m-3" @click="flip()"><arrow-split-vertical-icon /></button>
-        
-        <button class="btn btn-outline-primary m-3" @click="move('right')"><arrow-right-bold-icon /></button>
-
-        <button class="btn btn-outline-primary m-3" @click="jump()"><arrow-up-bold-icon /></button>
+        <button class="btn btn-outline-primary m-3" @click="cheer()">cheer</button>        
     </div>
-    <div class="form-group">
-        <label for="words">Make your idol say things!</label>
-        <input type="text" class="form-control" id="words" v-model="words" />
-    </div>
-
-      <button type="button" class="btn btn-primary" @click="talk()">Talk</button>
-
-
     
 
 </template>

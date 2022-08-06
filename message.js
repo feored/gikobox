@@ -35,6 +35,7 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
         case constants.GAMESTART:
             var isVIP = await rooms.isRoomVIP(wsMessage.key, wsMessage.room);
             if(isVIP){
+                rooms.setRoomClosed(wsMessage.room);
                 module.exports.sendGMMessage(wsMessage.room, wsMessage);
             }
             break;
@@ -51,7 +52,8 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
             // Check message is coming from GM
             var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
             if (isGM){
-                await module.exports.broadcastMessage(wsMessage.room, sanitizeMessageKey(wsMessage));
+                //await module.exports.broadcastMessage(wsMessage.room, sanitizeMessageKey(wsMessage));
+                await rooms.disconnectEveryoneFromRoom(wsMessage.room);
                 await rooms.deleteRoom(wsMessage.room);
             }
             break;
@@ -131,7 +133,6 @@ async function handlePlayerJoin(ws, wsMessage){
     }
 
     var gameName = await rooms.getRoomGame(wsMessage.room);
-    console.log("Game name found: " + gameName);
     var messageBackData = {
         "success" : true,
         "response": gameName
@@ -145,7 +146,6 @@ async function handlePlayerJoin(ws, wsMessage){
 }
 
 module.exports.sendGMMessage = async function (roomId, message){
-    console.log(message);
     rooms.getRoomGM(roomId).then(key => {
         if (rooms.connections.has(key)){
             rooms.connections.get(key).send(JSON.stringify(message));
@@ -155,7 +155,6 @@ module.exports.sendGMMessage = async function (roomId, message){
 
 module.exports.broadcastMessage = async function (roomId, message){
     var players = await rooms.getAllPlayersInRoom(roomId);   
-    console.log(players); 
     // Get connection for each player in rooms map
     players.forEach(playerId => {
         if (rooms.connections.has(playerId)){
@@ -165,10 +164,7 @@ module.exports.broadcastMessage = async function (roomId, message){
 }
 
 module.exports.sendTargetedMessage = async function (playerId, message){
-    console.log("Sending targeted message");
-    console.log(message);
     if (rooms.connections.has(playerId)){
-        console.log("Player ws connection found: " + playerId)
         rooms.connections.get(playerId).send(JSON.stringify(message));
     } else {
         console.log("Cannot send target message to " + playerId + ", player does not exist.");
