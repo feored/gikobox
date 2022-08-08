@@ -85,7 +85,7 @@ export default {
     </div>
     <div class="form-group">
         <label for="words">Make your idol say things!</label>
-        <input type="text" class="form-control" id="words" v-model="words" />
+        <input type="text" class="form-control" id="words" v-model="words" @keyup.enter="talk()"/>
     </div>
 
       <button type="button" class="btn btn-primary" @click="talk()">Talk</button>
