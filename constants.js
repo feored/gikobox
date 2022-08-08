@@ -6,6 +6,7 @@ module.exports = Object.freeze({
     GAMEMESSAGE: "game-message",
     GAMESTART: "game-start",
     LOADPAGE: "LOADPAGE",
+    LOADPAGESPECIFIC: "LOADPAGESPECIFIC",
     SUCCESS: "SUCCESS",
     ERROR: "FAILURE",
     STAGE: "STAGE",

@@ -42,6 +42,8 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
         case constants.LOADPAGE:
             loadNewPage(ws, wsMessage);
             break;
+        case constants.LOADPAGESPECIFIC:
+            loadNewPageSpecificPlayer(ws, wsMessage);
         case constants.GAMEMESSAGE:
             handleGameMessage(ws, wsMessage);
             break;
@@ -89,11 +91,13 @@ async function loadNewPage(ws, wsMessage){
 
 async function loadNewPageSpecificPlayer(ws, wsMessage){
     // check that the sender is GM (has right to send)
+    console.log(wsMessage);
     var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
     if(!isGM){
         return
     }
     wsMessage = sanitizeMessageKey(wsMessage);
+    wsMessage["type"] = constants.LOADPAGE;
     module.exports.sendTargetedMessage(wsMessage.player, wsMessage);
 }
 
@@ -164,6 +168,8 @@ module.exports.broadcastMessage = async function (roomId, message){
 }
 
 module.exports.sendTargetedMessage = async function (playerId, message){
+    console.log("sending targeted message");
+    console.log(message);
     if (rooms.connections.has(playerId)){
         rooms.connections.get(playerId).send(JSON.stringify(message));
     } else {

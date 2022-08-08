@@ -145,7 +145,7 @@ export default {
             <canvas class="border border-secondary border-5 rounded" width="480" height="640" id="sketchpad"></canvas>
             <br />
             <p>Enter your idol's name here!</p>
-            <input id="name" v-model="idolName" type="text" @keyup.enter="send"/>
+            <input id="name" v-model="idolName" type="text" @keyup.enter="send(false)"/>
             <button type="button" class="btn btn-primary" @click="send(false)">Submit</button>
         </div>
     </div>
