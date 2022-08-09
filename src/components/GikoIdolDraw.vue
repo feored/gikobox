@@ -24,7 +24,8 @@ export default {
                 "#FFFFFF",
                 "#FF0000",
                 "#00FF00",
-                "#0000FF"
+                "#0000FF",
+                "#FFC0CB"
             ],
             idolName:"",
             sent: false,
@@ -112,10 +113,14 @@ export default {
         <p> Idol Traits </p>
         <ul>
             <li v-for="trait in traits">
-                {{ trait }}
+                <b>{{ trait }}</b>
             </li>
         </ul>
     </div>
+
+    <p>Enter your idol's name here!</p>
+    <input id="name" v-model="idolName" type="text" @keyup.enter="send(false)"/>
+    
     <div id="drawing" v-show="!sent">
         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
             <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked @click="setSketchMode('draw')">
@@ -129,7 +134,7 @@ export default {
         </div>
         <br />
         <div class="btn-group" role="group" aria-label="Colors">
-            <button v-for="color in colors" type="button" class="btn rounded-circle" :style="'width:30px; height:30px; margin-left:5px; margin-right:5px; background-color: ' + color" @click="setColor(color)"></button>
+            <button v-for="color in colors" type="button" class="btn rounded-circle" :style="'border: 1px black; width:30px; height:30px; margin-left:5px; margin-right:5px; background-color: ' + color" @click="setColor(color)"></button>
         </div>
         <br />
         <div class="btn-group" role="group" aria-label="Brush width">
@@ -140,14 +145,13 @@ export default {
             <button type="button" class="btn btn-dark rounded-circle" style="margin-left:5px; margin-right:5px; width:40px; height:40px;" @click="this.sketchpad.weight=20"></button>
         </div>
         <br />
-        <button @click="clearCanvas()" class="btn btn-danger">Clear</button>
         <div>
             <canvas class="border border-secondary border-5 rounded" width="480" height="640" id="sketchpad"></canvas>
-            <br />
-            <p>Enter your idol's name here!</p>
-            <input id="name" v-model="idolName" type="text" @keyup.enter="send(false)"/>
+            <br />       
             <button type="button" class="btn btn-primary" @click="send(false)">Submit</button>
         </div>
+        
+        
     </div>
     <div id="edit" v-show="sent">
         <button id="editBtn" class="btn btn-warning" @click="sent = false">Edit</button>
