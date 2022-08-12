@@ -15,10 +15,9 @@ module.exports.wsMessage = function (key, type, room, player, message){
 module.exports.handleWsMessage = async function (ws, wsMessage){
     switch(wsMessage["type"]){
         case constants.CREATEROOM:
-            rooms.createRoom(8).then(roomId => {
+            rooms.createRoom(wsMessage["message"]["maxPlayers"], wsMessage["message"]["gameName"]).then(roomId => {
                 var key = rooms.generatePlayerId();
                 rooms.setRoomGM(roomId, key, ws);
-                rooms.setRoomGame(roomId, wsMessage["message"]);
                 var response = module.exports.wsMessage(key, constants.CREATEROOM, roomId, "", "");
                 ws.key = key;
                 ws.send(JSON.stringify(response));
@@ -26,6 +25,9 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
             break;
         case constants.PLAYERJOIN:
             handlePlayerJoin(ws, wsMessage);
+            break;
+        case constants.RELOG:
+            handleRelog(ws, wsMessage);
             break;
         case constants.CHECKVIP:
             var isVIP = await rooms.isRoomVIP(wsMessage.key, wsMessage.room);
@@ -54,8 +56,8 @@ module.exports.handleWsMessage = async function (ws, wsMessage){
             // Check message is coming from GM
             var isGM = await rooms.isRoomGM(wsMessage.key, wsMessage.room);
             if (isGM){
-                //await module.exports.broadcastMessage(wsMessage.room, sanitizeMessageKey(wsMessage));
-                await rooms.disconnectEveryoneFromRoom(wsMessage.room);
+                await module.exports.broadcastMessage(wsMessage.room, sanitizeMessageKey(wsMessage));
+                await rooms.closeRoom(wsMessage.room);
                 await rooms.deleteRoom(wsMessage.room);
             }
             break;
@@ -121,6 +123,14 @@ async function handleGameMessage(ws, wsMessage){
         wsMessage = sanitizeMessageKey(wsMessage);
         module.exports.broadcastMessage(wsMessage.room, wsMessage);
     }
+}
+
+async function handleRelog(ws, wsMessage){
+    var response = await rooms.checkRelog(wsMessage.key, ws);
+    if (response.success){
+        messageBack = module.exports.wsMessage(wsMessage.key, constants.PLAYERJOIN, response.room, response.player, response);
+        ws.send(JSON.stringify(messageBack));
+    } 
 }
 
 async function handlePlayerJoin(ws, wsMessage){

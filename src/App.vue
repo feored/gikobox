@@ -35,7 +35,6 @@ export default {
     }
   }, 
   created(){
-    console.log("Created!");
      ws.socket.onclose = () => {
         console.log("WebSocket connection closed.");
         this.gameOver();

@@ -44,10 +44,25 @@ wss.on('connection', function connection(ws) {
     ws.on('close', function () {
         rooms.connections.delete(ws.key);
         rooms.isTypeGM(ws.key).then((isGM) => {
-            if  (isGM){
+            if (isGM){
                 rooms.getPlayerRoom(ws.key).then((roomId) => {
-                    rooms.disconnectEveryoneFromRoom(roomId).then(() => {
-                        rooms.deleteRoom(roomId)
+                    rooms.getAllPlayersInRoom(roomId).then((players) => {
+                        players.forEach((playerId) => {
+                            if (rooms.connections.has(playerId)){
+                                rooms.connections.get(playerId).send(
+                                    JSON.stringify({
+                                        "type" : constants.DELETEROOM,
+                                        "message" : "",
+                                        "key" : "",
+                                        "room" : roomId,
+                                        "player" : ""
+                                    })
+                                );
+                            }
+                        });
+                    });
+                    rooms.closeRoom(roomId).then(() => {
+                        rooms.deleteRoom(roomId);
                     });
                 });
             }
@@ -64,16 +79,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser());
 
+/*
 async function checkPlayerId(req, res) {
     let token = req.cookies.playerId;
     if (!token || !rooms.isValidPlayerCode(token)) {
         let playerId = await rooms.addPlayer();
-        res.cookie('playerId', playerId);
+        res.cookie('playerId', playerId, 60*60*24);
     }
-}
+}*/
 
 app.get('/', async (req, res) => {
-    await checkPlayerId(req, res);
+    //await checkPlayerId(req, res);
     res.sendFile(__dirname + '/dist/index.html');
 });
 

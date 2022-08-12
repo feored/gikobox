@@ -79,14 +79,11 @@ module.exports.isTypeGM = async function(playerId){
     return (await client.HGET(getPlayerInfoKey(playerId), PLAYER_TYPE_KEY)) == TYPE_GM;
 }
 
-module.exports.disconnectEveryoneFromRoom = async function (roomId){
+module.exports.closeRoom = async function (roomId){
     var players = await module.exports.getAllPlayersInRoom(roomId);
     players.forEach(playerId => {
         client.DEL(getPlayerInfoKey(playerId));
         client.SREM(PLAYERS_KEY,  playerId);
-        if (module.exports.connections.has(playerId)){
-            module.exports.connections.get(playerId).close();
-        }
     });
     module.exports.getRoomGM(roomId).then((playerId) => {
         client.DEL(getPlayerInfoKey(playerId));
@@ -101,11 +98,6 @@ module.exports.getPlayerInfo = async function(playerId){
 module.exports.getRoomGame = async function(roomId)
 {
     return await client.HGET(getRoomInfoKey(roomId), ROOMS_GAME_KEY);
-}
-
-module.exports.setRoomGame = async function(roomId, game)
-{
-    client.HSET(getRoomInfoKey(roomId), ROOMS_GAME_KEY, game);
 }
 
 module.exports.getRoomVIP = async function(roomId)
@@ -171,8 +163,6 @@ function getRoomPlayersKey(roomId)
 }
 
 module.exports.deleteRoom = async function (roomId){
-
-    // await module.exports.disconnectEveryoneFromRoom(roomId);
     
     // Delete 2 Keys : room:xxx:players, room:xxx:info, and
     // Remove xxx from set rooms
@@ -183,7 +173,7 @@ module.exports.deleteRoom = async function (roomId){
     return;
 }
 
-module.exports.createRoom = async function (maxPlayers)
+module.exports.createRoom = async function (maxPlayers, gameName)
 {
     var roomId = generateRoomId();
 
@@ -192,6 +182,7 @@ module.exports.createRoom = async function (maxPlayers)
     }
 
     client.SADD(ROOMS_KEY, roomId);
+    client.HSET(getRoomInfoKey(roomId), ROOMS_GAME_KEY, gameName);
     client.HSET(getRoomInfoKey(roomId), MAX_PLAYERS_KEY, maxPlayers);
     module.exports.setRoomOpen(roomId);
 
@@ -202,20 +193,6 @@ module.exports.createRoom = async function (maxPlayers)
 module.exports.isValidPlayerCode = function (playerId)
 {
     return uuidValidate(playerId) && uuidVersion(playerId) === 4;
-}
-
-
-module.exports.addPlayer = async function ()
-{
-    var playerId = module.exports.generatePlayerId();
-
-    while (await client.SISMEMBER(PLAYERS_KEY, playerId)){
-        playerId = module.exports.generatePlayerId();
-    }
-
-    client.SADD(PLAYERS_KEY, playerId);
-    
-    return playerId;
 }
 
 module.exports.getAllRooms = async function ()
@@ -233,6 +210,42 @@ module.exports.getAllPlayersInRoom = async function(roomId)
     return await client.SMEMBERS(getRoomPlayersKey(roomId));
 }
 
+module.exports.checkRelog = async function(playerId, ws){
+    var response = {};
+    response.success = true;
+    
+    if (!module.exports.isValidPlayerCode(playerId)){
+        console.log("Failed because playerid is invalid");
+        response.success = false;
+        return response;
+    }
+
+    if (!(await client.SISMEMBER(PLAYERS_KEY, playerId))){
+        console.log("Failed because playerID not in players");
+        response.success = false;
+        return response;
+    }
+
+    // Conflict may happen here if the player is still in the player set,
+    // but the player info hashmap is deleted due to race conditions.
+
+
+    // The player has relogged
+
+    var playerName = await client.HGET(getPlayerInfoKey(playerId), PLAYER_NAME_KEY);
+    var roomId = await client.HGET(getPlayerInfoKey(playerId), PLAYER_ROOM_KEY);
+    var game = await module.exports.getRoomGame(roomId);
+    module.exports.connections.set(playerId, ws)
+    
+    response.player = playerName;
+    response.room = roomId;
+    response.response = game;
+
+    return response;
+
+
+}
+
 module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
 {
 
@@ -240,18 +253,19 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
     response.success = true;
     response.message = "Successfully joined room.";
 
-    if (!module.exports.isValidPlayerCode(playerId)){
-        response.success = false;
-        response.message = "Sorry, your playerID is invalid. Try clearing your cache or deleting cookies and refreshing.";
-        return response;
-    }
-
     if (!isValidPlayerName(playerName)){
         response.success = false;
         response.message = "Sorry, the name you have chosen is invalid. Please try another name.";
         return response;
     }
-    
+
+    if (!(await isNameAvailable(roomId, playerName))){
+        // Name already taken
+        response.success = false;
+        response.message = "The name you have chosen is already taken.";
+        return response;
+    }
+
     if (!(await client.SISMEMBER(ROOMS_KEY, roomId))){
         // Room does not exist
         response.success = false;
@@ -272,22 +286,40 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
         return response;
     }
 
-    if (await client.SISMEMBER(getRoomPlayersKey(roomId), playerId)){
-        // Player already in room
-        response.success = false;
-        response.message = "You have already joined this room!";
-        return response;
+    if (playerId){
+
+        if (!module.exports.isValidPlayerCode(playerId)){
+            response.success = false;
+            response.message = "Sorry, your playerID is invalid. Try clearing your cache or deleting cookies and refreshing.";
+            return response;
+        }
+
+        if (await client.SISMEMBER(getRoomPlayersKey(roomId), playerId)){
+            // Player already in room
+            response.success = false;
+            response.message = "You have already joined this room!";
+            return response;
+        }
+
+    } else {
+        playerId = module.exports.generatePlayerId();
     }
 
-    if (!(await isNameAvailable(roomId, playerName))){
-        // Name already taken
-        response.success = false;
-        response.message = "The name you have chosen is already taken.";
-        return response;
-    }
+
+    
+    
+    
+
+    
+
+    
+
+    
+
 
     // All checks OK, player can join room
     client.SADD(getRoomPlayersKey(roomId), playerId);
+    client.SADD(PLAYERS_KEY, playerId);
     client.HSET(getPlayerInfoKey(playerId), PLAYER_NAME_KEY, playerName);
     client.HSET(getPlayerInfoKey(playerId), PLAYER_ROOM_KEY, roomId);
     client.HSET(getPlayerInfoKey(playerId), PLAYER_TYPE_KEY, TYPE_PLAYER);

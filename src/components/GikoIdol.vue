@@ -35,10 +35,6 @@ export default {
         login() {
             ws.sendMessage(this.cookies.get("playerId"), constants.PLAYERJOIN, this.$store.state.room, this.$store.state.nickname, "");
         },
-        
-        gameOver() {
-            this.$parent.gameOver();
-        }
     },
     created() {
         ws.socket.onmessage = (event) => {
@@ -51,7 +47,7 @@ export default {
                     break;
                 case constants.DELETEROOM:
                     console.log("Game over, room deleted.");
-                    this.gameOver();
+                    this.$parent.gameOver();
                     break;
                 default:
                     if (typeof this.$refs.myChild.handleIncomingMessage !== "undefined") {

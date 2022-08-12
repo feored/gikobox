@@ -26,6 +26,7 @@ export default {
         switch (message["type"]) {
             case "player-join":
                 if (true == message["message"]["success"]) {
+                  this.cookies.set("playerId", message["key"], 60*60*24);
                   this.$store.commit({
                     type: 'setGame',
                     game: message["message"]["response"]
@@ -49,6 +50,22 @@ export default {
                 break;
         }
     };
+    // Only get an answer back from relog message if we need to be relogged
+    ws.socket.onopen = (event) => {
+        console.log("Socket connection open");
+        if (this.cookies.get("playerId")){
+            console.log("Sent RELOG message");
+            ws.socket.send(JSON.stringify({
+                "key"  : this.cookies.get("playerId"),
+                "type" : "RELOG",
+                "room" : "",
+                "player" : "",
+                "message" : ""
+            }));
+        } else {
+            console.log("Can't find playerId in cookies");
+        }
+    }
   }
 }
 
