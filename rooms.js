@@ -285,14 +285,15 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
         response.message = "Sorry, the room is full already.";
         return response;
     }
-
-    if (playerId){
-
+    console.log("Before ID : " + playerId);
+    if (playerId && module.exports.isValidPlayerCode(playerId)){
+        /*
         if (!module.exports.isValidPlayerCode(playerId)){
             response.success = false;
             response.message = "Sorry, your playerID is invalid. Try clearing your cache or deleting cookies and refreshing.";
             return response;
         }
+        */
 
         if (await client.SISMEMBER(getRoomPlayersKey(roomId), playerId)){
             // Player already in room
@@ -304,6 +305,9 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
     } else {
         playerId = module.exports.generatePlayerId();
     }
+    console.log("After ID: " + playerId);
+
+    response.key = playerId;
 
 
     
@@ -327,7 +331,9 @@ module.exports.joinRoom = async function (roomId, playerId, playerName, ws)
 
     // Check if player is VIP (== First player)
     var playerCount = await client.SCARD(getRoomPlayersKey(roomId));
+    console.log("Currently " + playerCount + " players in this room.");
     if (playerCount == 1){
+        console.log("Setting  VIP : " + playerId);
         await module.exports.setRoomVIP(roomId, playerId);
     }
 

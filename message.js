@@ -136,12 +136,13 @@ async function handleRelog(ws, wsMessage){
 async function handlePlayerJoin(ws, wsMessage){
     var response = await rooms.joinRoom(wsMessage.room, wsMessage.key, wsMessage.player, ws);
     var messageBack;
+    var newPlayerKey = response.key;
     if (!response.success){
         messageBackData = {
             "success" : false,
             "response" : response.message
         }
-        messageBack = module.exports.wsMessage(wsMessage.key, constants.PLAYERJOIN, wsMessage.room, wsMessage.player, messageBackData);
+        messageBack = module.exports.wsMessage(newPlayerKey, constants.PLAYERJOIN, wsMessage.room, wsMessage.player, messageBackData);
         ws.send(JSON.stringify(messageBack));
         return
     }
@@ -152,11 +153,11 @@ async function handlePlayerJoin(ws, wsMessage){
         "response": gameName
     }
     ws.key = wsMessage.key;
-    var messageBack = module.exports.wsMessage(wsMessage.key, constants.PLAYERJOIN, wsMessage.room, wsMessage.player, messageBackData);
+    var messageBack = module.exports.wsMessage(newPlayerKey, constants.PLAYERJOIN, wsMessage.room, wsMessage.player, messageBackData);
     ws.send(JSON.stringify(messageBack));
 
     // In case of success, also notify GM that a new player has joined
-    module.exports.sendGMMessage(wsMessage.room, wsMessage);
+    module.exports.sendGMMessage(wsMessage.room, messageBack);
 }
 
 module.exports.sendGMMessage = async function (roomId, message){
