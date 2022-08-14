@@ -38,6 +38,7 @@ export default {
         <br />
         <input v-model="trait" type="text" @keyup.enter="sendTrait"/>
     </div>
+    <br />
     <button @click="sendTrait" type="button" class="btn btn-primary" id="submitButton">Submit</button>
 
 </template>

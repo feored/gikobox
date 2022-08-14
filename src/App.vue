@@ -52,7 +52,6 @@ export default {
                 </div>
                 <div id="maincontent"  style="background-color:white; margin-top:5%; margin-bottom: 5%;">
                     <div class="container align-items-center justify-content-center min">
-                        <!--<GikoIdolDraw />-->
                         <Login v-if="!logged" @loginSuccess="loginSuccess"/>
                         <GikoIdol v-if="logged && game=='GikoIdol'" />
                     </div>

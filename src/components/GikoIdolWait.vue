@@ -54,21 +54,17 @@ export default {
 
 <template>
     <p>Waiting to start...</p>
-    <button v-show="VIP && startable" @click="startGame">
+    <button v-show="VIP && startable" @click="startGame" class="btn btn-primary">
             Start the game
     </button>
     <div> <!--</div> v-show="avatars.length > 0">-->
         <h2 style="color:red;">Pick a giko to represent yourself!</h2>
         <br />
-        <div class="row">
-            <div class="col-md-6"> 
-                <div class="container row" v-for="avatar in this.avatars">
-                    <div class="col"> 
-                        <img :src="'/GikoIdol/img/' + avatar + '.svg'" width="50" height="50" />
-                    </div>
-                    <div class="col"> 
-                        <input type="radio" v-model="avatarChoice" name="avatarpick" :value="avatar" @change="pickAvatar">
-                    </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 justify-content-center"> 
+                <div class="d-flex flex-row justify-content-center" v-for="avatar in this.avatars">
+                        <img class="p-2" :src="'/GikoIdol/img/' + avatar + '.svg'" width="50" height="50" />
+                        <input class="p-2" type="radio" v-model="avatarChoice" name="avatarpick" :value="avatar" @change="pickAvatar">
                 </div>
             </div>
         </div>
