@@ -43,7 +43,7 @@ export default {
         <br />
         <div v-if="idols.length > 0">
             <div v-for="idol in idols">
-                <input type="radio" v-model="vote" name="vote" :value="idol.player"> {{idol.idolName}} ({{idol.player}})
+                <input type="radio" v-model="vote" name="vote" :value="idol.player"> {{idol.idolName}}
             </div>
             <button @click="sendChoice" type="button" id="submitButton">Submit</button>
         </div>

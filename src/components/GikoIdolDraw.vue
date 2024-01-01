@@ -201,7 +201,7 @@ export default {
                 </div>
                 <div class="p-2">
                     <div class="slidecontainer">
-                        <input class="form-range w-100" type="range" min="1" max="35" v-model="this.weight" @change="(evt) => {this.sketchpad.weight = Number(this.weight)}">
+                        <input class="form-range w-100" id="brushsize" type="range" min="1" max="35" v-model="this.weight" @change="(evt) => {this.sketchpad.weight = Number(this.weight)}"> <label for="brushsize">Brush Size</label>
                     </div>
                     <canvas class="border border-dark border-5 rounded" style="background-color:#61778c;" width="480" height="640" id="sketchpad"></canvas>     
                     <div class="flex-row d-flex justify-content-between">
